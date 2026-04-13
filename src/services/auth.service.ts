@@ -37,12 +37,11 @@ export const loginUser = async (email: string, passwordRaw: string) => {
   const user = await db.query.users.findFirst({
     where: eq(users.email, email),
   });
-  if (!user) throw new Error("Email or password is invalid");
+  if (!user) throw new AppError("Email or password is invalid!", 400, "INVALID_CREDENTIALS");
 
   const isMatch = await bcrypt.compare(passwordRaw, user.password);
-  if (!isMatch) throw new Error("Email or password is invalid");
+  if (!isMatch) throw new AppError("Email or password is invalid!", 400, "INVALID_CREDENTIALS");
 
-  // Buat tiket (Token) yang berlaku 1 hari
   const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
     expiresIn: "1d",
   });

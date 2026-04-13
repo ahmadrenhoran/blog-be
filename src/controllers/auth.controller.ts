@@ -18,12 +18,13 @@ export const register = async (
   }
 };
 
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, password } = req.body;
     const result = await authService.loginUser(email, password);
-    res.status(200).json({ message: "Login sukses", data: result });
+
+    ApiResponse.success(res, result, "Successfully login", 200);
   } catch (error: any) {
-    res.status(401).json({ error: error.message });
+    next(error);
   }
 };
