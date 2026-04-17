@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as authService from "../services/auth.service";
 import { ApiResponse } from "../utils/response";
-import { AppError } from "../utils/errors";
 
 export const register = async (
   req: Request,
@@ -9,6 +8,7 @@ export const register = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    
     const { name, email, password } = req.body;
     const newUser = await authService.registerUser(name, email, password);
     
@@ -28,3 +28,5 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     next(error);
   }
 };
+
+
