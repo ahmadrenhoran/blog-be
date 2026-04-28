@@ -105,3 +105,21 @@ export const getPosts = async (
     },
   };
 };
+
+export const deletePostById = async (postId: number, userId: string) => {
+  const result = await db.execute(
+    sql`delete from posts 
+        where id = ${postId} and user_id = ${userId} 
+        returning *`, // Menambahkan returning agar data yang dihapus bisa dicek
+  );
+
+  // result.rows biasanya berisi array dari baris yang terpengaruh
+  if (result.rows.length === 0) {
+    throw new AppError(
+      `Post not found or you're not authorized to delete this post`,
+      403,
+      "UNAUTHORIZED_UPDATE",
+    );
+  }
+  return result.rows[0];
+};

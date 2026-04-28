@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import * as postService from "../services/post.service";
 import { ApiResponse } from "../utils/response";
 import { AuthRequest } from "../middleware/auth.middleware";
-import { updatePost as updatingPost } from '../services/post.service';
 
 export const createPost = async (
   req: AuthRequest,
@@ -62,6 +61,26 @@ export const getPostById = async (
     const userId = req.user.id
 
     const newPost = await postService.getPostById(
+      parseInt(id as string),
+      userId,
+    );
+
+    ApiResponse.success(res, newPost, "Successfully created a new post", 200);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const deletePostById = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id
+
+    const newPost = await postService.deletePostById(
       parseInt(id as string),
       userId,
     );
