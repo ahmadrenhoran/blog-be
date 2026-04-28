@@ -1,0 +1,26 @@
+name: Sync to Hugging Face Hub
+
+on:
+  push:
+    branches: [main] # Menjalankan action setiap push ke branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to Hugging Face
+        env:
+          HF_ACCESS_TOKEN: ${{ secrets.HF_ACCESS_TOKEN }}
+        run: |
+          # Menambahkan remote Hugging Face menggunakan token
+          # Ganti [USERNAME] dan [SPACE_NAME] sesuai akun Anda
+          git remote add hf https://ahmadrenhoran:$HF_ACCESS_TOKEN@huggingface.co/spaces/acaca28/backend
+          
+          # Memaksa push ke branch main di Hugging Face
+          git push --force hf main
