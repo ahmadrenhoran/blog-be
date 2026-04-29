@@ -40,6 +40,8 @@ const resolveDatasetRepo = () => {
 // Step 4: ambil access token untuk proses upload ke Hugging Face.
 const resolveAccessToken = () => {
     const accessToken = process.env.HF_ACCESS_TOKEN;
+    console.log("HF_ACCESS_TOKEN:", process.env.HF_ACCESS_TOKEN ? "ADA" : "KOSONG");
+    console.log("HF_REPO:", process.env.HF_REPO);
     if (!accessToken) {
         throw new errors_1.AppError("Hugging Face access token is not configured", 500, "HF_TOKEN_MISSING");
     }
