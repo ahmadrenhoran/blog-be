@@ -8,7 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const index_1 = __importDefault(require("./routes/index"));
 const error_middleware_1 = require("./middleware/error.middleware");
-dotenv_1.default.config();
+dotenv_1.default.config({ quiet: true });
 const app = (0, express_1.default)();
 app.use((req, res, next) => {
     console.log("🔥 HIT:", req.method, req.url);

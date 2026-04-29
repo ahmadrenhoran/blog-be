@@ -36,21 +36,53 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.db = void 0;
+exports.assertDbConnection = exports.db = exports.pool = void 0;
 const node_postgres_1 = require("drizzle-orm/node-postgres");
 const pg_1 = require("pg");
 const dotenv_1 = __importDefault(require("dotenv"));
+const crypto_1 = require("crypto");
 const schema = __importStar(require("../models"));
-dotenv_1.default.config();
-const pool = new pg_1.Pool({
-    user: "avnadmin",
-    password: process.env.DB_PASSWORD,
-    host: "pg-e93faa3-codegeass1933-4f09.h.aivencloud.com",
-    port: 27894,
-    database: "defaultdb",
-    ssl: {
+dotenv_1.default.config({ quiet: true });
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+    throw new Error('DATABASE_URL is required');
+}
+const caCertificate = process.env.DB_CA_CERT?.replace(/\\n/g, '\n');
+const connectionString = new URL(databaseUrl);
+connectionString.searchParams.delete('sslmode');
+connectionString.searchParams.delete('sslrootcert');
+const isValidCertificate = (certificate) => {
+    if (!certificate) {
+        return false;
+    }
+    try {
+        new crypto_1.X509Certificate(certificate);
+        return true;
+    }
+    catch {
+        return false;
+    }
+};
+const ssl = isValidCertificate(caCertificate)
+    ? {
         rejectUnauthorized: true,
-        ca: process.env.DB_CA_CERT, // simpan di env
-    },
+        ca: caCertificate,
+    }
+    : {
+        rejectUnauthorized: false,
+    };
+exports.pool = new pg_1.Pool({
+    connectionString: connectionString.toString(),
+    ssl,
 });
-exports.db = (0, node_postgres_1.drizzle)(pool, { schema });
+exports.db = (0, node_postgres_1.drizzle)(exports.pool, { schema });
+const assertDbConnection = async () => {
+    const client = await exports.pool.connect();
+    try {
+        await client.query('select 1');
+    }
+    finally {
+        client.release();
+    }
+};
+exports.assertDbConnection = assertDbConnection;
