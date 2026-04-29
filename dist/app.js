@@ -10,6 +10,10 @@ const index_1 = __importDefault(require("./routes/index"));
 const error_middleware_1 = require("./middleware/error.middleware");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
+app.use((req, res, next) => {
+    console.log("🔥 HIT:", req.method, req.url);
+    next();
+});
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.get('/', (_req, res) => {
