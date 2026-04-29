@@ -1,25 +1,25 @@
-# 1. Gunakan base image yang stabil
-FROM node:18-slim
+FROM node:20-alpine AS builder
 
-# 2. Buat user baru (HF menyarankan tidak menggunakan root untuk keamanan)
-RUN useradd -m -u 1000 user
-USER user
-ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH
+WORKDIR /app
 
-# 3. Set working directory
-WORKDIR $HOME/app
+COPY package*.json ./
+RUN npm ci
 
-# 4. Copy file manifest dan install dependencies
-COPY --chown=user package*.json ./
-RUN npm install
+COPY . .
+RUN npm run build
 
-# 5. Copy seluruh kode sumber
-COPY --chown=user . .
+FROM node:20-alpine
 
-# 6. Ekspos Port 7860 (Standar Hugging Face)
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=7860
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/dist ./dist
+
 EXPOSE 7860
 
-# 7. Jalankan aplikasi dengan environment port yang benar 
-ENV PORT=7860
-CMD ["node", "src/index.js"]
+CMD ["npm", "start"]
