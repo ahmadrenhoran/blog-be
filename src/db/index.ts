@@ -2,12 +2,15 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
-import * as schema from '../models'; 
+import * as schema from '../models';
 
 dotenv.config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // WAJIB untuk Aiven
+  },
 });
 
 export const db = drizzle(pool, { schema });
