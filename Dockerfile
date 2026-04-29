@@ -22,4 +22,4 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 7860
 
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]
