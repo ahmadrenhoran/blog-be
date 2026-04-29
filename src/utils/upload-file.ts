@@ -43,10 +43,10 @@ const sanitizeFileName = (filename: string) => {
 
 // Step 3: ambil nama repo dataset dari env yang sudah Anda siapkan.
 const resolveDatasetRepo = () => {
-  const repoName = process.env.HF_DATASET_REPO ?? process.env.HF_REPO ?? process.env.HF_REVIEW;
+  const repoName = process.env.HF_REVIEW;
 
   if (!repoName) {
-    throw new AppError("Hugging Face dataset repo is not configured", 500, "HF_REPO_MISSING");
+    throw new AppError("Hugging Face dataset repo is not configured", 500, "HF_REVIEW_MISSING");
   }
 
   return repoName;
@@ -56,7 +56,7 @@ const resolveDatasetRepo = () => {
 const resolveAccessToken = () => {
   const accessToken = process.env.HF_ACCESS_TOKEN;
   console.log("HF_ACCESS_TOKEN:", process.env.HF_ACCESS_TOKEN ? "ADA" : "KOSONG");
-  console.log("HF_REPO:", process.env.HF_REPO);
+  console.log("HF_REVIEW:", process.env.HF_REVIEW);
   if (!accessToken) {
     throw new AppError("Hugging Face access token is not configured", 500, "HF_TOKEN_MISSING");
   }
