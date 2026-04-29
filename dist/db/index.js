@@ -43,6 +43,14 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const schema = __importStar(require("../models"));
 dotenv_1.default.config();
 const pool = new pg_1.Pool({
-    connectionString: process.env.DATABASE_URL,
+    user: "avnadmin",
+    password: process.env.DB_PASSWORD,
+    host: "pg-e93faa3-codegeass1933-4f09.h.aivencloud.com",
+    port: 27894,
+    database: "defaultdb",
+    ssl: {
+        rejectUnauthorized: true,
+        ca: process.env.DB_CA_CERT, // simpan di env
+    },
 });
 exports.db = (0, node_postgres_1.drizzle)(pool, { schema });

@@ -31,7 +31,7 @@ const sanitizeFileName = (filename) => {
 };
 // Step 3: ambil nama repo dataset dari env yang sudah Anda siapkan.
 const resolveDatasetRepo = () => {
-    const repoName = process.env.HF_DATASET_REPO ?? process.env.HF_REVIEW ?? process.env.HF_REVIEW;
+    const repoName = process.env.HF_REVIEW;
     if (!repoName) {
         throw new errors_1.AppError("Hugging Face dataset repo is not configured", 500, "HF_REVIEW_MISSING");
     }
