@@ -33,9 +33,10 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPosts = exports.deletePostById = exports.getPostById = exports.updatePost = exports.createPost = void 0;
+exports.getCreatorPostById = exports.getCreatorPosts = exports.getPosts = exports.deletePostById = exports.getPostById = exports.updatePost = exports.createPost = void 0;
 const postService = __importStar(require("../services/post.service"));
 const response_1 = require("../utils/response");
+const errors_1 = require("../utils/errors");
 const createPost = async (req, res, next) => {
     try {
         const { title, content, cover_image } = req.body;
@@ -87,8 +88,10 @@ const deletePostById = async (req, res, next) => {
 exports.deletePostById = deletePostById;
 const getPosts = async (req, res, next) => {
     try {
-        const { page, pageSize, search } = req.params;
-        const posts = await postService.getPosts(parseInt(page), parseInt(pageSize), search);
+        const { page, pageSize, search } = req.query;
+        const parsedPage = page ? parseInt(page) : undefined;
+        const parsedPageSize = pageSize ? parseInt(pageSize) : undefined;
+        const posts = await postService.getPosts(parsedPage, parsedPageSize, search);
         response_1.ApiResponse.success(res, posts, "Successfully get posts", 200);
     }
     catch (error) {
@@ -96,3 +99,34 @@ const getPosts = async (req, res, next) => {
     }
 };
 exports.getPosts = getPosts;
+const getCreatorPosts = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+        if (!Number.isInteger(Number(userId))) {
+            throw new errors_1.AppError("Invalid user id", 400, "INVALID_USER_ID");
+        }
+        const posts = await postService.getCreatorPosts(userId);
+        response_1.ApiResponse.success(res, posts, "Successfully get creator posts", 200);
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getCreatorPosts = getCreatorPosts;
+const getCreatorPostById = async (req, res, next) => {
+    try {
+        const { userId, postId } = req.params;
+        if (!Number.isInteger(Number(userId))) {
+            throw new errors_1.AppError("Invalid user id", 400, "INVALID_USER_ID");
+        }
+        if (!Number.isInteger(Number(postId))) {
+            throw new errors_1.AppError("Invalid post id", 400, "INVALID_POST_ID");
+        }
+        const post = await postService.getCreatorPostById(userId, parseInt(postId));
+        response_1.ApiResponse.success(res, post, "Successfully get creator post", 200);
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getCreatorPostById = getCreatorPostById;

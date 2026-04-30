@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCreatorPosts = exports.deletePostById = exports.getPosts = exports.getPostById = exports.updatePost = exports.createPost = void 0;
+exports.getCreatorPostById = exports.getCreatorPosts = exports.deletePostById = exports.getPosts = exports.getPostById = exports.updatePost = exports.createPost = void 0;
 const utils_1 = require("../utils/utils");
 const db_1 = require("../db");
 const models_1 = require("../models");
@@ -87,7 +87,22 @@ const deletePostById = async (postId, userId) => {
 };
 exports.deletePostById = deletePostById;
 const getCreatorPosts = async (userId) => {
-    const data = await db_1.db.execute((0, drizzle_orm_1.sql) `select * from posts where user_id = ${userId} order by created_at desc`);
-    return data.rows;
+    return db_1.db
+        .select()
+        .from(models_1.posts)
+        .where((0, drizzle_orm_2.and)((0, drizzle_orm_1.eq)(models_1.posts.user_id, Number(userId)), (0, drizzle_orm_1.eq)(models_1.posts.status, "published")))
+        .orderBy((0, drizzle_orm_1.desc)(models_1.posts.createdAt));
 };
 exports.getCreatorPosts = getCreatorPosts;
+const getCreatorPostById = async (userId, postId) => {
+    const [post] = await db_1.db
+        .select()
+        .from(models_1.posts)
+        .where((0, drizzle_orm_2.and)((0, drizzle_orm_1.eq)(models_1.posts.id, postId), (0, drizzle_orm_1.eq)(models_1.posts.user_id, Number(userId)), (0, drizzle_orm_1.eq)(models_1.posts.status, "published")))
+        .limit(1);
+    if (!post) {
+        throw new errors_1.AppError("Post not found", 404, "POST_NOT_FOUND");
+    }
+    return post;
+};
+exports.getCreatorPostById = getCreatorPostById;

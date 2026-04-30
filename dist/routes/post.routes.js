@@ -7,6 +7,8 @@ const express_1 = __importDefault(require("express"));
 const post_controller_1 = require("../controllers/post.controller");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const postRoutes = express_1.default.Router();
+postRoutes.get('/creator/:userId/:postId', post_controller_1.getCreatorPostById);
+postRoutes.get('/creator/:userId', post_controller_1.getCreatorPosts);
 postRoutes.post('/', auth_middleware_1.authMiddleware, post_controller_1.createPost);
 postRoutes.put('/:id', auth_middleware_1.authMiddleware, post_controller_1.updatePost);
 postRoutes.get('/:id', auth_middleware_1.authMiddleware, post_controller_1.getPostById);

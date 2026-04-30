@@ -127,8 +127,29 @@ export const deletePostById = async (postId: number, userId: string) => {
 };
 
 export const getCreatorPosts = async (userId: string) => {
-  const data = await db.execute(
-    sql`select * from posts where user_id = ${userId} order by created_at desc`,
-  );
-  return data.rows;
+  return db
+    .select()
+    .from(posts)
+    .where(and(eq(posts.user_id, Number(userId)), eq(posts.status, "published")))
+    .orderBy(desc(posts.createdAt));
+};
+
+export const getCreatorPostById = async (userId: string, postId: number) => {
+  const [post] = await db
+    .select()
+    .from(posts)
+    .where(
+      and(
+        eq(posts.id, postId),
+        eq(posts.user_id, Number(userId)),
+        eq(posts.status, "published"),
+      ),
+    )
+    .limit(1);
+
+  if (!post) {
+    throw new AppError("Post not found", 404, "POST_NOT_FOUND");
+  }
+
+  return post;
 };
