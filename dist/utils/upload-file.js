@@ -8,7 +8,7 @@ const multer_1 = __importDefault(require("multer"));
 const hub_1 = require("@huggingface/hub");
 const node_path_1 = __importDefault(require("node:path"));
 const errors_1 = require("./errors");
-const maxFileSize = Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 1 * 1024 * 1024);
+const maxFileSize = Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 3 * 1024 * 1024);
 const storage = multer_1.default.memoryStorage();
 // Step 1: simpan file sementara di memory agar bisa langsung dikirim ke Hugging Face.
 exports.uploadSingleFile = (0, multer_1.default)({
