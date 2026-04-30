@@ -13,7 +13,7 @@ export interface UploadedFile {
   buffer: Buffer;
 }
 
-const maxFileSize = Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 1 * 1024 * 1024);
+const maxFileSize = Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 3 * 1024 * 1024);
 
 const storage = multer.memoryStorage();
 
