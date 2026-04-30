@@ -95,17 +95,7 @@ Database production menggunakan PostgreSQL dari Aiven. Koneksi database dibaca d
 
 ## Diagram Alur Integrasi
 
-Tempat untuk image flow alur integrasi sudah disiapkan di:
-
-```txt
-docs/images/integration-flow.png
-```
-
-Setelah image tersedia, aktifkan baris berikut:
-
-```md
-![Flow alur integrasi](docs/images/integration-flow.png)
-```
+![alt text](https://huggingface.co/datasets/acaca28/fivespace-storage/resolve/main/uploads/1777540342894-hgcuv682-gemini_generated_image_jdwi5ojdwi5ojdwi-1.png)
 
 ## Routing API
 
