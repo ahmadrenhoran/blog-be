@@ -9,7 +9,7 @@ pinned: false
 
 # Blog Backend API
 
-Backend API untuk aplikasi blog sederhana yang dibuat dengan Express.js, TypeScript, PostgreSQL, Drizzle ORM, JWT authentication, upload file ke Hugging Face Datasets, dan deployment ke Hugging Face Spaces menggunakan Docker serta GitHub Actions.
+Backend API untuk aplikasi blog sederhana yang dibuat dengan Express.js, TypeScript, PostgreSQL, Drizzle ORM, JWT authentication, upload file ke Hugging Face Datasets, AI writing assistant via OpenRouter, dan deployment ke Hugging Face Spaces menggunakan Docker serta GitHub Actions.
 
 Project ini memakai Hugging Face dengan dua peran berbeda:
 
@@ -31,6 +31,7 @@ Database production menggunakan PostgreSQL dari Aiven. Koneksi database dibaca d
 - Zod untuk validasi request auth
 - multer untuk menerima upload file multipart
 - `@huggingface/hub` untuk upload file ke Hugging Face Datasets
+- OpenRouter untuk fitur AI writing assistant
 - Docker untuk deployment
 - GitHub Actions untuk sync deployment ke Hugging Face Spaces
 - Aiven PostgreSQL sebagai managed database
@@ -46,6 +47,8 @@ Database production menggunakan PostgreSQL dari Aiven. Koneksi database dibaca d
 - Generate slug otomatis dari judul post
 - Generate excerpt otomatis dari content
 - Upload file ke Hugging Face Datasets sebagai object storage
+- Generate bantuan penulisan blog dengan AI
+- Limit penggunaan AI harian per user
 - Response JSON konsisten
 - Global error handler
 - Docker-ready untuk Hugging Face Spaces
@@ -56,6 +59,7 @@ Database production menggunakan PostgreSQL dari Aiven. Koneksi database dibaca d
 ```txt
 .
 ├── .github/workflows/deploy.yml   # GitHub Actions deployment ke Hugging Face Spaces
+├── docs/images/                    # Tempat image flow alur integrasi
 ├── drizzle/                       # File migration Drizzle
 ├── src/
 │   ├── app.ts                     # Setup Express app, middleware, route utama
@@ -70,6 +74,7 @@ Database production menggunakan PostgreSQL dari Aiven. Koneksi database dibaca d
 │   ├── types/                     # Type declaration tambahan
 │   └── utils/                     # Helper response, error, upload, slug
 ├── Dockerfile                     # Image Docker untuk Hugging Face Spaces
+├── .env.template                  # Template environment variable
 ├── drizzle.config.ts              # Konfigurasi Drizzle Kit
 ├── package.json
 └── tsconfig.json
@@ -84,8 +89,23 @@ Database production menggunakan PostgreSQL dari Aiven. Koneksi database dibaca d
 5. Data user dan post disimpan di PostgreSQL Aiven menggunakan Drizzle ORM.
 6. Upload file diterima oleh multer di memory, lalu buffer file dikirim ke Hugging Face Datasets.
 7. Hugging Face Datasets mengembalikan file yang bisa diakses melalui URL `https://huggingface.co/datasets/<repo>/resolve/main/<path>`.
-8. Aplikasi dideploy ke Hugging Face Spaces memakai Docker.
-9. GitHub Actions melakukan sync kode dari GitHub repository ke repository Hugging Face Space setiap ada push ke branch `main`.
+8. Endpoint AI writing mengirim prompt terstruktur ke OpenRouter dan mencatat kuota harian user.
+9. Aplikasi dideploy ke Hugging Face Spaces memakai Docker.
+10. GitHub Actions melakukan sync kode dari GitHub repository ke repository Hugging Face Space setiap ada push ke branch `main`.
+
+## Diagram Alur Integrasi
+
+Tempat untuk image flow alur integrasi sudah disiapkan di:
+
+```txt
+docs/images/integration-flow.png
+```
+
+Setelah image tersedia, aktifkan baris berikut:
+
+```md
+![Flow alur integrasi](docs/images/integration-flow.png)
+```
 
 ## Routing API
 
@@ -315,6 +335,71 @@ Response sukses:
 }
 ```
 
+### AI Writing Routes
+
+Base path:
+
+```txt
+/api/v1/ai
+```
+
+Semua route AI writing memakai middleware JWT. Tambahkan header:
+
+```txt
+Authorization: Bearer <token>
+```
+
+#### POST `/api/v1/ai/writing`
+
+Generate bantuan penulisan blog lewat OpenRouter.
+
+Body:
+
+```json
+{
+  "action": "draft",
+  "prompt": "Buat artikel tentang manfaat journaling untuk developer",
+  "title": "Journaling untuk Developer",
+  "content": "Catatan awal yang ingin dikembangkan..."
+}
+```
+
+Field:
+
+| Field | Wajib | Keterangan |
+| --- | --- | --- |
+| `action` | Ya | Salah satu dari `title`, `outline`, `draft`, `improve`, atau `cta`. |
+| `prompt` | Tidak | Arahan tambahan dari user, maksimal 4000 karakter. |
+| `title` | Tidak | Judul saat ini, maksimal 255 karakter. |
+| `content` | Tidak | Konten saat ini, maksimal 20000 karakter. |
+
+Minimal salah satu dari `prompt`, `title`, atau `content` harus diisi.
+
+Response sukses:
+
+```json
+{
+  "success": true,
+  "message": "Successfully generated writing assistance",
+  "data": {
+    "model": "openrouter/free",
+    "text": "Hasil tulisan dari AI",
+    "usage": {
+      "date": "2026-04-30",
+      "used": 1,
+      "remaining": 9,
+      "limit": 10
+    }
+  }
+}
+```
+
+Catatan:
+
+- API key dibaca dari `OPENROUTER_API_KEY`.
+- Model default dibaca dari `OPENROUTER_MODEL`, fallback ke `openrouter/free`.
+- Limit harian default adalah 10 request per user per hari.
+
 ## Database Schema
 
 ### `users`
@@ -343,9 +428,22 @@ Response sukses:
 | `updated_at` | timestamp | Waktu update |
 | `created_at` | timestamp | Waktu dibuat |
 
+### `ai_generation_usages`
+
+| Column | Type | Keterangan |
+| --- | --- | --- |
+| `id` | serial | Primary key |
+| `user_id` | integer | Foreign key ke `users.id` |
+| `usage_date` | date | Tanggal penggunaan sesuai timezone limit |
+| `count` | integer | Jumlah generate AI pada tanggal tersebut |
+| `updated_at` | timestamp | Waktu update |
+| `created_at` | timestamp | Waktu dibuat |
+
+Tabel ini memiliki unique index untuk kombinasi `user_id` dan `usage_date`.
+
 ## Environment Variables
 
-Buat file `.env` di root project.
+Buat file `.env` di root project berdasarkan `.env.template`.
 
 ```env
 PORT=7860
@@ -355,6 +453,12 @@ JWT_SECRET=your-super-secret-jwt-key
 HF_ACCESS_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxx
 HF_REVIEW=username/dataset-name
 UPLOAD_MAX_FILE_SIZE=1048576
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxx
+OPENROUTER_MODEL=openrouter/free
+OPENROUTER_SITE_URL=http://localhost:7860
+OPENROUTER_APP_NAME=Blog CMS AI Writer
+AI_WRITING_DAILY_LIMIT=10
+AI_WRITING_LIMIT_TIMEZONE=Asia/Jakarta
 ```
 
 Keterangan:
@@ -368,6 +472,12 @@ Keterangan:
 | `HF_ACCESS_TOKEN` | Ya untuk upload | Token Hugging Face dengan permission write ke dataset. |
 | `HF_REVIEW` | Ya untuk upload | Nama repo dataset Hugging Face, format `username/dataset-name`. |
 | `UPLOAD_MAX_FILE_SIZE` | Tidak | Maksimal ukuran file upload dalam byte. Default 1 MB. |
+| `OPENROUTER_API_KEY` | Ya untuk AI writing | API key OpenRouter. |
+| `OPENROUTER_MODEL` | Tidak | Model OpenRouter yang dipakai. Default `openrouter/free`. |
+| `OPENROUTER_SITE_URL` | Tidak | Nilai header `HTTP-Referer` untuk request OpenRouter. Default `http://localhost`. |
+| `OPENROUTER_APP_NAME` | Tidak | Nilai header `X-Title` untuk request OpenRouter. Default `Blog CMS AI Writer`. |
+| `AI_WRITING_DAILY_LIMIT` | Tidak | Limit generate AI per user per hari. Default `10`. |
+| `AI_WRITING_LIMIT_TIMEZONE` | Tidak | Timezone untuk reset limit harian. Default `Asia/Jakarta`. |
 
 ## Setup Project Local
 
@@ -386,7 +496,13 @@ npm install
 
 ### 3. Setup environment
 
-Buat file `.env` berdasarkan daftar environment variable di atas.
+Buat file `.env` dari template:
+
+```bash
+cp .env.template .env
+```
+
+Lalu isi value sesuai environment lokal.
 
 Minimal untuk menjalankan API dengan database:
 
@@ -401,6 +517,14 @@ Tambahkan variable Hugging Face jika ingin memakai endpoint upload:
 ```env
 HF_ACCESS_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxx
 HF_REVIEW=username/dataset-name
+```
+
+Tambahkan variable OpenRouter jika ingin memakai endpoint AI writing:
+
+```env
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxx
+OPENROUTER_MODEL=openrouter/free
+AI_WRITING_DAILY_LIMIT=10
 ```
 
 ### 4. Setup database Aiven
@@ -563,6 +687,12 @@ JWT_SECRET=your-super-secret-jwt-key
 HF_ACCESS_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxx
 HF_REVIEW=username/dataset-name
 UPLOAD_MAX_FILE_SIZE=1048576
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxx
+OPENROUTER_MODEL=openrouter/free
+OPENROUTER_SITE_URL=https://<HF_USERNAME>-<SPACE_NAME>.hf.space
+OPENROUTER_APP_NAME=Blog CMS AI Writer
+AI_WRITING_DAILY_LIMIT=10
+AI_WRITING_LIMIT_TIMEZONE=Asia/Jakarta
 ```
 
 Variable ini dibaca saat container berjalan di Hugging Face Spaces.
@@ -641,6 +771,14 @@ username/dataset-name
 ### File upload terlalu besar
 
 Naikkan `UPLOAD_MAX_FILE_SIZE` dalam byte. Default project adalah 1 MB.
+
+### AI writing gagal karena `OPENROUTER_KEY_MISSING`
+
+Pastikan `OPENROUTER_API_KEY` sudah diisi di `.env` lokal atau Settings Hugging Face Spaces.
+
+### Limit generate AI harian tercapai
+
+Naikkan `AI_WRITING_DAILY_LIMIT` jika limit default 10 request per user per hari terlalu kecil.
 
 ### Hugging Face Space tidak bisa start
 
