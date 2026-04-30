@@ -31,6 +31,7 @@ export const updatePost = async (
   postId: number,
   userId: number,
   title: string,
+  status: "draft" | "published",
   content: string,
   coverImage: string,
 ) => {
@@ -39,6 +40,7 @@ export const updatePost = async (
     .set({
       title,
       content,
+      status,
       coverImage,
     })
     .where(and(eq(posts.id, postId), eq(posts.user_id, userId)))
@@ -64,7 +66,7 @@ export const getPostById = async (postId: number, userId: string) => {
     throw new AppError(
       `Post not found or you're not authorized to view this post`,
       403,
-      "UNAUTHORIZED_UPDATE",
+      "UNAUTHORIZED_GET",
     );
   }
   return post.rows[0];
@@ -118,8 +120,15 @@ export const deletePostById = async (postId: number, userId: string) => {
     throw new AppError(
       `Post not found or you're not authorized to delete this post`,
       403,
-      "UNAUTHORIZED_UPDATE",
+      "UNAUTHORIZED_DELETE",
     );
   }
   return result.rows[0];
+};
+
+export const getCreatorPosts = async (userId: string) => {
+  const data = await db.execute(
+    sql`select * from posts where user_id = ${userId} order by created_at desc`,
+  );
+  return data.rows;
 };

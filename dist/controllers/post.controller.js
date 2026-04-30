@@ -51,9 +51,9 @@ exports.createPost = createPost;
 const updatePost = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { title, content, cover_image } = req.body;
+        const { title, content, status, cover_image } = req.body;
         const userId = req.user.id;
-        const newPost = await postService.updatePost(parseInt(id), userId, title, content, cover_image);
+        const newPost = await postService.updatePost(parseInt(id), userId, title, status, content, cover_image);
         response_1.ApiResponse.success(res, newPost, "Post updated successfully", 200);
     }
     catch (error) {

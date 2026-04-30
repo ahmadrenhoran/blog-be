@@ -33,7 +33,7 @@ export const updatePost = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { title, content, cover_image } = req.body;
+    const { title, content, status, cover_image } = req.body;
 
     const userId = req.user.id
 
@@ -41,6 +41,7 @@ export const updatePost = async (
       parseInt(id as string),
       userId,
       title,
+      status,
       content,
       cover_image,
     );
