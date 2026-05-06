@@ -1,3 +1,5 @@
 export * from './user.model'
 export * from './post.model'
 export * from './ai-generation-usage.model'
+export * from './portfolio.model'
+export * from './resume.model'
