@@ -9,8 +9,8 @@ export const register = async (
 ): Promise<void> => {
   try {
     
-    const { name, email, password } = req.body;
-    const newUser = await authService.registerUser(name, email, password);
+    const { name, email, password, username } = req.body;
+    const newUser = await authService.registerUser(name, email, password, username);
     
     ApiResponse.success(res, newUser, "Successfully created a new user", 200);
   } catch (error: any) {
