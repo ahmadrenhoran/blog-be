@@ -93,12 +93,13 @@ export const deletePostById = async (
   }
 };
 
-export const getPosts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getPosts = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { page, pageSize, search } = req.query
+    const userId = req.user.id;
     const parsedPage = page ? parseInt(page as string) : undefined;
     const parsedPageSize = pageSize ? parseInt(pageSize as string) : undefined;
-    const posts = await postService.getPosts(parsedPage, parsedPageSize, search as string)
+    const posts = await postService.getPosts(userId, parsedPage, parsedPageSize, search as string)
 
     ApiResponse.success(res, posts, "Successfully get posts", 200);
   } catch (error) {

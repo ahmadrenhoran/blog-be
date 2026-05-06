@@ -73,6 +73,7 @@ export const getPostById = async (postId: number, userId: string) => {
 };
 
 export const getPosts = async (
+  userId: number,
   page: number = 1,
   pageSize: number = 10,
   search?: string,
@@ -83,16 +84,20 @@ export const getPosts = async (
     ? ilike(posts.title, `%${search}%`)
     : undefined;
 
+  const whereClause = filters 
+    ? and(eq(posts.user_id, userId), filters)
+    : eq(posts.user_id, userId);
+
   const [data, countResult] = await Promise.all([
     db
       .select()
       .from(posts)
-      .where(filters)
+      .where(whereClause)
       .limit(pageSize)
       .offset(offset)
       .orderBy(desc(posts.createdAt)),
 
-    db.select({ total: count() }).from(posts).where(filters),
+    db.select({ total: count() }).from(posts).where(whereClause),
   ]);
 
   const totalCount = countResult[0].total;
