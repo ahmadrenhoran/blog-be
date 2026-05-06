@@ -1,3 +1,12 @@
+---
+title: Backend API
+emoji: 🚀
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # ⚙️ Portfolio Management - Headless API
 
 The core backend for the Portfolio Management System. This is a high-performance REST API designed to serve both the Creator Workspace (CMS) and public-facing portfolio websites.
