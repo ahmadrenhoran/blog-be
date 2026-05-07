@@ -33,13 +33,14 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePortfolio = exports.updatePortfolio = exports.createPortfolio = exports.getPortfolios = void 0;
+exports.duplicatePortfolio = exports.deletePortfolio = exports.updatePortfolio = exports.createPortfolio = exports.getPortfolioById = exports.getPortfolios = void 0;
 const portfolioService = __importStar(require("../services/portfolio.service"));
 const response_1 = require("../utils/response");
 const getPortfolios = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const data = await portfolioService.getPortfolios(userId);
+        const filters = req.query;
+        const data = await portfolioService.getPortfolios(userId, filters);
         response_1.ApiResponse.success(res, data);
     }
     catch (error) {
@@ -47,6 +48,21 @@ const getPortfolios = async (req, res, next) => {
     }
 };
 exports.getPortfolios = getPortfolios;
+const getPortfolioById = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const id = req.params.id;
+        const data = await portfolioService.getPortfolioById(parseInt(id), userId);
+        if (!data) {
+            return response_1.ApiResponse.error(res, null, "Portfolio not found", 404);
+        }
+        response_1.ApiResponse.success(res, data);
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getPortfolioById = getPortfolioById;
 const createPortfolio = async (req, res, next) => {
     try {
         const userId = req.user.id;
@@ -82,3 +98,15 @@ const deletePortfolio = async (req, res, next) => {
     }
 };
 exports.deletePortfolio = deletePortfolio;
+const duplicatePortfolio = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const id = req.params.id;
+        const data = await portfolioService.duplicatePortfolio(parseInt(id), userId);
+        response_1.ApiResponse.success(res, data, "Portfolio duplicated successfully");
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.duplicatePortfolio = duplicatePortfolio;

@@ -7,6 +7,7 @@ import userRoutes from './user.routes';
 import portfolioRoutes from './portfolio.routes';
 import resumeRoutes from './resume.routes';
 import publicRoutes from './public.routes';
+import toolRoutes from './tool.routes';
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use('/user', userRoutes);
 router.use('/portfolios', portfolioRoutes);
 router.use('/resumes', resumeRoutes);
 router.use('/public', publicRoutes);
+router.use('/tools', toolRoutes);
 
 export default router;

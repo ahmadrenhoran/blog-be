@@ -50,6 +50,13 @@
       "when": 1777973882646,
       "tag": "0006_careless_betty_brant",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1778145127165,
+      "tag": "0007_misty_power_pack",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const public_controller_1 = require("../controllers/public.controller");
 const publicRoutes = express_1.default.Router();
 publicRoutes.get("/:username/portfolio", public_controller_1.getPublicPortfolios);
+publicRoutes.get("/:username/portfolio/:slug", public_controller_1.getPublicPortfolioDetail);
 publicRoutes.get("/:username/cv", public_controller_1.getPublicResume);
 publicRoutes.get("/:username/blog", public_controller_1.getPublicBlogs);
 publicRoutes.get("/:username/blog/:slug", public_controller_1.getPublicBlogDetail);

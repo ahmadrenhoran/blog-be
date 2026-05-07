@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { users, portfolios, resumes, posts } from "../models";
+import { users, portfolios, resumes, posts, portfolioSections, portfolioMedia } from "../models";
 import { eq, and, desc } from "drizzle-orm";
 import { AppError } from "../utils/errors";
 
@@ -17,17 +17,66 @@ export const getPublicPortfolios = async (username: string, lang: string = "en")
   const user = await getUserByUsername(username);
 
   const data = await db.query.portfolios.findMany({
-    where: eq(portfolios.user_id, user.id),
+    where: and(
+      eq(portfolios.user_id, user.id),
+      eq(portfolios.is_published, true)
+    ),
+    with: {
+      media: {
+        orderBy: [desc(portfolioMedia.sort_order)],
+        limit: 1,
+      },
+      tools: {
+        with: {
+          tool: true,
+        }
+      }
+    },
     orderBy: [desc(portfolios.createdAt)],
   });
 
   return data.map((p) => {
-    const description = p.description as any;
+    const shortDesc = p.short_description as any;
     return {
       ...p,
-      description: description ? description[lang] || description["en"] || description["id"] || null : null,
+      short_description: shortDesc ? shortDesc[lang] || shortDesc["en"] || shortDesc["id"] || null : null,
     };
   });
+};
+
+export const getPublicPortfolioDetail = async (username: string, slug: string, lang: string = "en") => {
+  const user = await getUserByUsername(username);
+
+  const data = await db.query.portfolios.findFirst({
+    where: and(
+      eq(portfolios.user_id, user.id),
+      eq(portfolios.slug, slug),
+      eq(portfolios.is_published, true)
+    ),
+    with: {
+      sections: {
+        orderBy: [portfolioSections.sort_order],
+      },
+      media: {
+        orderBy: [portfolioMedia.sort_order],
+      },
+      tools: {
+        with: {
+          tool: true,
+        }
+      }
+    }
+  });
+
+  if (!data) {
+    throw new AppError("Portfolio not found", 404);
+  }
+
+  const shortDesc = data.short_description as any;
+  return {
+    ...data,
+    short_description: shortDesc ? shortDesc[lang] || shortDesc["en"] || shortDesc["id"] || null : null,
+  };
 };
 
 export const getPublicResume = async (username: string) => {

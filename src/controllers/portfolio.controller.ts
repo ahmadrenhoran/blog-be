@@ -10,7 +10,26 @@ export const getPortfolios = async (
 ) => {
   try {
     const userId = req.user.id;
-    const data = await portfolioService.getPortfolios(userId);
+    const filters = req.query;
+    const data = await portfolioService.getPortfolios(userId, filters);
+    ApiResponse.success(res, data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPortfolioById = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user.id;
+    const id = req.params.id as string;
+    const data = await portfolioService.getPortfolioById(parseInt(id), userId);
+    if (!data) {
+      return ApiResponse.error(res, null, "Portfolio not found", 404);
+    }
     ApiResponse.success(res, data);
   } catch (error) {
     next(error);
@@ -56,6 +75,21 @@ export const deletePortfolio = async (
     const id = req.params.id as string;
     await portfolioService.deletePortfolio(parseInt(id), userId);
     ApiResponse.success(res, null, "Portfolio deleted successfully");
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const duplicatePortfolio = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user.id;
+    const id = req.params.id as string;
+    const data = await portfolioService.duplicatePortfolio(parseInt(id), userId);
+    ApiResponse.success(res, data, "Portfolio duplicated successfully");
   } catch (error) {
     next(error);
   }

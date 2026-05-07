@@ -17,6 +17,22 @@ export const getPublicPortfolios = async (
   }
 };
 
+export const getPublicPortfolioDetail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const username = req.params.username as string;
+    const slug = req.params.slug as string;
+    const lang = (req.query.lang as string) || "en";
+    const data = await publicService.getPublicPortfolioDetail(username, slug, lang);
+    ApiResponse.success(res, data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getPublicResume = async (
   req: Request,
   res: Response,

@@ -89,9 +89,10 @@ exports.deletePostById = deletePostById;
 const getPosts = async (req, res, next) => {
     try {
         const { page, pageSize, search } = req.query;
+        const userId = req.user.id;
         const parsedPage = page ? parseInt(page) : undefined;
         const parsedPageSize = pageSize ? parseInt(pageSize) : undefined;
-        const posts = await postService.getPosts(parsedPage, parsedPageSize, search);
+        const posts = await postService.getPosts(userId, parsedPage, parsedPageSize, search);
         response_1.ApiResponse.success(res, posts, "Successfully get posts", 200);
     }
     catch (error) {

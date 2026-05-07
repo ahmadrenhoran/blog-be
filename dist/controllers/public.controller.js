@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPublicBlogDetail = exports.getPublicBlogs = exports.getPublicResume = exports.getPublicPortfolios = void 0;
+exports.getPublicBlogDetail = exports.getPublicBlogs = exports.getPublicResume = exports.getPublicPortfolioDetail = exports.getPublicPortfolios = void 0;
 const publicService = __importStar(require("../services/public.service"));
 const response_1 = require("../utils/response");
 const getPublicPortfolios = async (req, res, next) => {
@@ -48,6 +48,19 @@ const getPublicPortfolios = async (req, res, next) => {
     }
 };
 exports.getPublicPortfolios = getPublicPortfolios;
+const getPublicPortfolioDetail = async (req, res, next) => {
+    try {
+        const username = req.params.username;
+        const slug = req.params.slug;
+        const lang = req.query.lang || "en";
+        const data = await publicService.getPublicPortfolioDetail(username, slug, lang);
+        response_1.ApiResponse.success(res, data);
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getPublicPortfolioDetail = getPublicPortfolioDetail;
 const getPublicResume = async (req, res, next) => {
     try {
         const username = req.params.username;

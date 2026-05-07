@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPublicBlogDetail = exports.getPublicBlogs = exports.getPublicResume = exports.getPublicPortfolios = void 0;
+exports.getPublicBlogDetail = exports.getPublicBlogs = exports.getPublicResume = exports.getPublicPortfolioDetail = exports.getPublicPortfolios = void 0;
 const db_1 = require("../db");
 const models_1 = require("../models");
 const drizzle_orm_1 = require("drizzle-orm");
@@ -17,18 +17,57 @@ const getUserByUsername = async (username) => {
 const getPublicPortfolios = async (username, lang = "en") => {
     const user = await getUserByUsername(username);
     const data = await db_1.db.query.portfolios.findMany({
-        where: (0, drizzle_orm_1.eq)(models_1.portfolios.user_id, user.id),
+        where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(models_1.portfolios.user_id, user.id), (0, drizzle_orm_1.eq)(models_1.portfolios.is_published, true)),
+        with: {
+            media: {
+                orderBy: [(0, drizzle_orm_1.desc)(models_1.portfolioMedia.sort_order)],
+                limit: 1,
+            },
+            tools: {
+                with: {
+                    tool: true,
+                }
+            }
+        },
         orderBy: [(0, drizzle_orm_1.desc)(models_1.portfolios.createdAt)],
     });
     return data.map((p) => {
-        const description = p.description;
+        const shortDesc = p.short_description;
         return {
             ...p,
-            description: description ? description[lang] || description["en"] || description["id"] || null : null,
+            short_description: shortDesc ? shortDesc[lang] || shortDesc["en"] || shortDesc["id"] || null : null,
         };
     });
 };
 exports.getPublicPortfolios = getPublicPortfolios;
+const getPublicPortfolioDetail = async (username, slug, lang = "en") => {
+    const user = await getUserByUsername(username);
+    const data = await db_1.db.query.portfolios.findFirst({
+        where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(models_1.portfolios.user_id, user.id), (0, drizzle_orm_1.eq)(models_1.portfolios.slug, slug), (0, drizzle_orm_1.eq)(models_1.portfolios.is_published, true)),
+        with: {
+            sections: {
+                orderBy: [models_1.portfolioSections.sort_order],
+            },
+            media: {
+                orderBy: [models_1.portfolioMedia.sort_order],
+            },
+            tools: {
+                with: {
+                    tool: true,
+                }
+            }
+        }
+    });
+    if (!data) {
+        throw new errors_1.AppError("Portfolio not found", 404);
+    }
+    const shortDesc = data.short_description;
+    return {
+        ...data,
+        short_description: shortDesc ? shortDesc[lang] || shortDesc["en"] || shortDesc["id"] || null : null,
+    };
+};
+exports.getPublicPortfolioDetail = getPublicPortfolioDetail;
 const getPublicResume = async (username) => {
     const user = await getUserByUsername(username);
     const data = await db_1.db.query.resumes.findFirst({

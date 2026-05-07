@@ -33,28 +33,27 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.register = void 0;
-const authService = __importStar(require("../services/auth.service"));
+exports.createTool = exports.getTools = void 0;
+const toolService = __importStar(require("../services/tool.service"));
 const response_1 = require("../utils/response");
-const register = async (req, res, next) => {
+const getTools = async (req, res, next) => {
     try {
-        const { name, email, password, username } = req.body;
-        const newUser = await authService.registerUser(name, email, password, username);
-        response_1.ApiResponse.success(res, newUser, "Successfully created a new user", 200);
+        const search = req.query.search;
+        const data = await toolService.getTools(search);
+        response_1.ApiResponse.success(res, data);
     }
     catch (error) {
         next(error);
     }
 };
-exports.register = register;
-const login = async (req, res, next) => {
+exports.getTools = getTools;
+const createTool = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
-        const result = await authService.loginUser(email, password);
-        response_1.ApiResponse.success(res, result, "Successfully login", 200);
+        const data = await toolService.createTool(req.body);
+        response_1.ApiResponse.success(res, data, "Tool created successfully", 201);
     }
     catch (error) {
         next(error);
     }
 };
-exports.login = login;
+exports.createTool = createTool;

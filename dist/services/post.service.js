@@ -48,20 +48,23 @@ const getPostById = async (postId, userId) => {
     return post.rows[0];
 };
 exports.getPostById = getPostById;
-const getPosts = async (page = 1, pageSize = 10, search) => {
+const getPosts = async (userId, page = 1, pageSize = 10, search) => {
     const offset = (page - 1) * pageSize;
     const filters = search
         ? (0, drizzle_orm_1.ilike)(models_1.posts.title, `%${search}%`)
         : undefined;
+    const whereClause = filters
+        ? (0, drizzle_orm_2.and)((0, drizzle_orm_1.eq)(models_1.posts.user_id, userId), filters)
+        : (0, drizzle_orm_1.eq)(models_1.posts.user_id, userId);
     const [data, countResult] = await Promise.all([
         db_1.db
             .select()
             .from(models_1.posts)
-            .where(filters)
+            .where(whereClause)
             .limit(pageSize)
             .offset(offset)
             .orderBy((0, drizzle_orm_1.desc)(models_1.posts.createdAt)),
-        db_1.db.select({ total: (0, drizzle_orm_1.count)() }).from(models_1.posts).where(filters),
+        db_1.db.select({ total: (0, drizzle_orm_1.count)() }).from(models_1.posts).where(whereClause),
     ]);
     const totalCount = countResult[0].total;
     return {
